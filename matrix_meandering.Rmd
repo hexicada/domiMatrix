@@ -4,62 +4,97 @@ output: html_document
 ---
 
 ```{r}
-map <- matrix(".", nrow = 5, ncol = 5)
-map[2, 3] <- "#"
-map[3, 3] <- "#"
-map[4, 2] <- "#"
-map[4, 5] <- "X"
-map[5, 4] <- "T"
-map[1, 1] <- "@"
-map[5, 2] <- "T"
-map[1, 2] <- "T"
+create_game <- function() {
+    grid <- matrix(".", nrow = 5, ncol = 5)
 
-player_row <- 1
-player_col <- 1
+    grid[2, 3] <- "#"
+    grid[3, 3] <- "#"
+    grid[4, 2] <- "#"
+    grid[4, 5] <- "X"
+    grid[5, 4] <- "T"
+    grid[5, 2] <- "T"
+    grid[1, 2] <- "T"
+    grid[1, 1] <- "@"
 
-move <- function(direction) {
-    if (direction == "up") {
-        new_row <- player_row - 1
-        new_col <- player_col
-    } else if (direction == "down") {
-        new_row <- player_row + 1
-        new_col <- player_col
-    } else if (direction == "left") {
-        new_row <- player_row
-        new_col <- player_col - 1
-    } else if (direction == "right") {
-        new_row <- player_row
-        new_col <- player_col + 1
-    }
-    
-    if (new_row < 1 | new_row > 5 | new_col < 1 | new_col > 5) {
-        cat("Blocked! You've hit the edge of the dungeon.\n")
-    } else if (map[new_row, new_col] == "#") {
-        cat("Blocked by a large rock.\n")
-    } else if (map[new_row, new_col] == "T") {
-        cat("You found TREASURE!\n")
-        map[player_row, player_col] <<- "."
-        map[new_row, new_col] <<- "@"
-        player_row <<- new_row
-        player_col <<- new_col
-    } else if (map[new_row, new_col] == "X") {
-        cat("You found the exit!\n")
-        map[player_row, player_col] <<- "X"
-        map[new_row, new_col] <<- "@"
-        player_row <<- new_row
-        player_col <<- new_col
-    } else {
-        map[player_row, player_col] <<- "."
-        map[new_row, new_col] <<- "@"
-        player_row <<- new_row
-        player_col <<- new_col
-    }
-    
-    cat("\n")
-    print(map)
+    list(
+        map = grid,
+        player = c(row = 1L, col = 1L),
+        treasure_found = 0L,
+        game_over = FALSE
+    )
 }
 
-map
+direction_delta <- function(direction) {
+    switch(
+        direction,
+        up = c(-1L, 0L),
+        down = c(1L, 0L),
+        left = c(0L, -1L),
+        right = c(0L, 1L)
+    )
+}
+
+print_game <- function(game) {
+    cat("\n")
+    print(game$map)
+    invisible(game)
+}
+
+move_player <- function(game, direction) {
+    direction <- match.arg(direction, c("up", "down", "left", "right"))
+
+    if (game$game_over) {
+        message("Game over. Use reset_game() to play again.")
+        return(game)
+    }
+
+    delta <- direction_delta(direction)
+    new_row <- game$player["row"] + delta[1]
+    new_col <- game$player["col"] + delta[2]
+
+    if (new_row < 1L || new_row > nrow(game$map) || new_col < 1L || new_col > ncol(game$map)) {
+        message("Blocked! You've hit the edge of the dungeon.")
+        return(game)
+    }
+
+    target_tile <- game$map[new_row, new_col]
+    if (target_tile == "#") {
+        message("Blocked by a large rock.")
+        return(game)
+    }
+
+    old_row <- game$player["row"]
+    old_col <- game$player["col"]
+    game$map[old_row, old_col] <- "."
+
+    if (target_tile == "T") {
+        message("You found TREASURE!")
+        game$treasure_found <- game$treasure_found + 1L
+    }
+
+    if (target_tile == "X") {
+        message("You found the exit!")
+        game$game_over <- TRUE
+    }
+
+    game$map[new_row, new_col] <- "@"
+    game$player <- c(row = new_row, col = new_col)
+    game
+}
+
+game <- create_game()
+
+move <- function(direction) {
+    game <<- move_player(game, direction)
+    print_game(game)
+}
+
+reset_game <- function() {
+    game <<- create_game()
+    print_game(game)
+}
+
+print_game(game)
 ```
 ```{r}
 

@@ -17,7 +17,7 @@ A tiny grid-based dungeon game written in R.
 ## How To Play
 
 1. Open `matrix_meandering.Rmd`.
-2. Run the first R code chunk to initialize the map and `move()` function.
+2. Run the first R code chunk to initialize the game state and helper functions.
 3. Use these commands in the R console:
 
 ```r
@@ -25,6 +25,9 @@ move("up")
 move("down")
 move("left")
 move("right")
+
+# Restart from a fresh map
+reset_game()
 ```
 
 Each move prints the updated map and messages such as blocked paths, treasure found, or exit reached.
@@ -38,7 +41,7 @@ Each move prints the updated map and messages such as blocked paths, treasure fo
 ## Ideas For Next Steps
 
 - Add win/lose conditions and score tracking
--Add lore 
+- Add lore 
 - Add random map generation
 - Track collected treasure count
 - Add enemies or traps
